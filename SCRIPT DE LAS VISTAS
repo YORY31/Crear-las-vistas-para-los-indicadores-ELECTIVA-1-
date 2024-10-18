@@ -1,0 +1,163 @@
+/*Crear las vistas para los indicadores
+Se requiere crear los siguientes vistas para los indicadores de dwh: 
+
+Ventas Totales por Período (Año y Mes)
+Ventas por Categoría de Producto
+Total de Ventas por Categoría
+Ventas por Región/País
+Número de Pedidos Procesados por Empleado
+Productividad de Empleados (Ventas por Empleado)
+Clientes Atendidos por Empleado
+Productos Más Vendidos
+Productos Más Vendidos por Categoría
+Total de Ventas por Transportista
+Número de Órdenes Enviadas por Transportista
+Total de Ventas por Cliente
+Número de Órdenes por Cliente*/
+
+USE Northwind;
+
+----- Ventas Totales por Período (Año y Mes)
+CREATE VIEW ventasporperiodo AS
+SELECT
+YEAR(O.OrderDate)as Año,
+MONTH (O.OrderDate) as Mes,
+SUM(OD.UnitPrice*OD.Quantity) AS totalventas
+FROM Orders O
+JOIN [Order Details] OD on O.OrderID = OD.OrderID
+GROUP BY YEAR(O.OrderDate),MONTH(O.OrderDate);
+
+--select * from ventasporperiodo
+
+
+
+---Ventas por Categoría de Producto
+CREATE VIEW VENTASPORCATEGORIA AS 
+SELECT
+C.CategoryName,
+SUM(OD.UnitPrice *OD.Quantity)AS totaldeventas
+FROM[Order Details]OD
+JOIN Products P ON OD.ProductID = P.ProductID
+JOIN Categories C ON P.CategoryID = C.CategoryID
+GROUP BY C.CategoryName;
+
+---VENTAS POR CATEGORIA
+CREATE VIEW TOTALVENTAS_POR_CATEGORIA AS
+SELECT
+SUM(OD.UnitPrice * OD.Quantity) AS totalventasporcategoria
+FROM[Order Details]OD
+JOIN Products P ON OD.ProductID = P.ProductID;
+
+---select * from TOTALVENTAS_POR_CATEGORIA
+--- ventas por region /pais
+CREATE VIEW VENTAS_POR_REGION_DE_PAIS AS
+SELECT
+C.Country AS PAIS,
+SUM (OD.UnitPrice* OD.Quantity) AS TOTALVENTAS
+FROM Orders O
+JOIN Customers C ON O.CustomerID = C.CustomerID
+JOIN [Order Details] OD ON O.OrderID = OD.OrderID
+GROUP BY C.Country;
+
+---SELECT * FROM VENTAS_POR_REGION_DE_PAIS
+
+
+---NUMERO DE PEDIDOS PROCESADOS POR EMPLEADO
+CREATE VIEW PEDIDOS_POR_EMPLEADO AS
+SELECT
+E.EmployeeID,
+E.LastName,
+COUNT (O.OrderID )AS NUMERO_de_pedidos_por_empleado
+FROM Orders O
+JOIN Employees E ON O.EmployeeID = E.EmployeeID
+GROUP BY E.EmployeeID , E.LastName;
+
+select * from PEDIDOS_POR_EMPLEADO 
+
+---Productividad de Empleados (Ventas por Empleado)
+CREATE VIEW VentasPorEmpleado3 AS
+SELECT 
+    E.EmployeeID, 
+    E.LastName, 
+    SUM(OD.UnitPrice * OD.Quantity) AS TotalVentas
+FROM Orders O
+JOIN Employees E ON O.EmployeeID = E.EmployeeID
+JOIN [Order Details] OD ON O.OrderID = OD.OrderID
+GROUP BY E.EmployeeID, E.LastName;
+
+SELECT * FROM VentasPorEmpleado3 
+---Clientes Atendidos por Empleado
+CREATE VIEW ClientesPorEmpleado AS
+SELECT
+E.EmployeeID,
+E.LastName,
+COUNT (DISTINCT O.CustomerID) AS CLIENTES_ATENDIDOS
+FROM Orders O
+JOIN Employees E ON O.EmployeeID = E.EmployeeID
+GROUP BY E.EmployeeID , E.LastName;
+
+SELECT * FROM ClientesPorEmpleado;
+---Productos Más Vendidos
+CREATE VIEW PRODUCTOS_MAS_VENDIDOS AS
+SELECT
+P.ProductName,
+SUM(OD.Quantity) AS CANTIDADVENDIDA
+FROM [Order Details] OD
+JOIN Products P ON OD.ProductID = P.ProductID
+GROUP BY P.ProductName;
+
+SELECT * FROM PRODUCTOS_MAS_VENDIDOS 
+---Productos Más Vendidos por Categoría
+CREATE VIEW PRODUCTOSMVPC AS ----MVPC MAS VENDIDOS POR CATEGORIAS
+SELECT
+C.CategoryName,
+P.ProductName,
+SUM(OD.Quantity) AS CANTIDADVENDIDA
+FROM [Order Details] OD
+JOIN Products P ON OD.ProductID = P.ProductID
+JOIN Categories C ON P.CategoryID = C.CategoryID
+GROUP BY C.CategoryName , P.ProductName;
+
+SELECT * FROM PRODUCTOSMVPC
+--Total de Ventas por Transportista
+CREATE VIEW VENTASPORTRANSPOTISTA AS
+SELECT
+S.CompanyName AS TRANSPORTISTA,
+SUM (OD.UnitPrice * OD.Quantity)AS TOTALVENTAS
+FROM Orders O
+JOIN Shippers S ON O.ShipVia = S.ShipperID
+JOIN [Order Details] OD ON O.OrderID = OD.OrderID
+GROUP BY S.CompanyName;
+
+
+---Número de Órdenes Enviadas por Transportista
+CREATE VIEW ORDENESPORTRANSPORTE AS 
+SELECT 
+S.CompanyName AS TRANSPORTISTA,
+COUNT (O.OrderID) AS NUMERO_ORDENES
+FROM Orders O
+JOIN Shippers S ON O.ShipVia = S.ShipperID
+GROUP BY S.CompanyName;
+
+---VENTAS POR CLIENTES 
+CREATE VIEW VENTASPORCLIENTES AS
+SELECT
+C.CustomerID,
+C.CompanyName,
+SUM (OD.UnitPrice * OD.Quantity) AS TOTALVENTASCLIENTES
+FROM Orders O
+JOIN Customers C ON O.CustomerID = C.CustomerID
+JOIN [Order Details] OD ON O.OrderID = OD.OrderID
+GROUP BY C.CustomerID , C.CompanyName;
+
+----NUMERO DE ORDENES POR CLIENTE
+CREATE VIEW ORDENESPORCLIENTE AS
+SELECT
+C.CustomerID,
+C.CompanyName,
+COUNT (O.OrderID) AS NUMERO_ORDENES
+FROM Orders O
+JOIN Customers C ON O.CustomerID = C.CustomerID
+GROUP BY C.CustomerID , C.CompanyName
+
+----SELECT * FROM ORDENESPORCLIENTE
